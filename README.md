@@ -12,3 +12,7 @@ Choose the gem you want and press Enter .
 Choose install the gem or open the uri .
 
 ![info](images/2.png)
+
+## Download
+
+[RubyGems.alfredworkflow](https://github.com/echohn/ruby_gems_org_alfred_workflow/raw/master/RubyGems.alfredworkflow)
