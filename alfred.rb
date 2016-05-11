@@ -1,5 +1,5 @@
 # encoding: utf-8
-require 'rubygems'
+
 require 'plist'
 require 'fileutils'
 
@@ -59,10 +59,6 @@ class AlfredInit
 
   def init_dir(path)
     FileUtils.mkdir_p(path)
-  end
-
-  def log(msg)
-    console_log(msg)
   end
 
 end

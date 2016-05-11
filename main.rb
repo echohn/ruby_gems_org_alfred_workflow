@@ -1,18 +1,34 @@
-# coding: utf-8
-require 'open-uri'
-require 'json'
+Encoding::default_external = Encoding::UTF_8 if defined? Encoding
 
-load 'alfred_feedback.rb'
-load 'caches.rb'
-query = Alfred.query
+require 'open-uri'
+
+begin
+  require 'json'
+  require 'plist'
+rescue LoadError
+  system 'gem install json plist -N'
+end
+
+query = ARGV[0]
+
+$LOAD_PATH.unshift File.dirname(__FILE__)
+
+require "alfred"
+require "alfred_feedback"
+require "cache"
+
+Alfred = AlfredInit.new(query)
 
 class RubyGemOrg
 
   def initialize(query)
     @feedback = Feedback.new
-    @caches   = Caches.new
+    @separator = '=>'
 
-    if query.match ':'
+    temp_file = File.join(Alfred.temp_storage_path, 'gems.yml')
+    @cache = Cache.new(temp_file)
+
+    if query.match @separator
       info query.split.first
     else
       search query
@@ -20,6 +36,7 @@ class RubyGemOrg
   end
 
   private
+
   def search(query)
     api = "https://rubygems.org/api/v1/search.json?query=#{query}"
 
@@ -37,9 +54,10 @@ class RubyGemOrg
       search_feedback response
     end
 
+
     puts @feedback.to_xml
 
-    @caches.save
+    @cache.save
   end
 
   def search_feedback(response)
@@ -49,10 +67,10 @@ class RubyGemOrg
         :title    => result['name'],
         :subtitle => "Downloads: #{result['downloads']} ; Info: #{result['info']}",
         :arg      => result['name'],
-        :autocomplete => result['name'] + ' : ',
+        :autocomplete => result['name'] + '  ' + @separator,
         :valid    => 'no'
       })
-      @caches.add result
+      @cache.add result
     end
   end
 
@@ -66,8 +84,8 @@ class RubyGemOrg
 
 
   def info(gem_name)
-
-    @gem_info = @caches.items[gem_name]
+    @cache.load
+    @gem_info = @cache.items[gem_name]
 
     @feedback = Feedback.new
     feedback_add_install_gem

@@ -4,16 +4,16 @@ query = ARGV[0]
 def open_uri(query)
   %x{osascript <<__APPLESCRIPT__
     open location "#{query}"
-  __APPLESCRIPT__}
+__APPLESCRIPT__}
 end
 
 def install_gem(query)
   %x{osascript <<__APPLESCRIPT__
     tell application "Terminal"
       activate
-      do script "gem install #{query} --no-document"
+      set currentTab to do script "gem install #{query} -N"
     end tell
-  __APPLESCRIPT__}
+__APPLESCRIPT__}
 end
 
 case query
