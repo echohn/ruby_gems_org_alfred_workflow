@@ -35,12 +35,15 @@ class RubyGemOrg
   def initialize(query)
     @feedback = Feedback.new
     @separator = '=>'
+    @separator_gemset = '->'
 
     temp_file = File.join(Alfred.temp_storage_path, 'gems.yml')
     @cache = Cache.new(temp_file)
 
     if query.match @separator
       info query.split.first
+    elsif query.match @separator_gemset
+      choose_gemset query.split.first
     else
       search query
     end
@@ -93,6 +96,21 @@ class RubyGemOrg
     })
   end
 
+  def choose_gemset(query)
+    gemsets =`rvm list gemsets`.lines.map {|x| $2 if x.chomp.match /(=>)*\s+(.*)\s+\[.*\]/}.compact
+    feedback = Feedback.new
+
+    gemsets.each do |gemset|
+      feedback.add_item({
+          :title    => gemset,
+          :subtitle => "#{query} will install to #{gemset}",
+          :arg      => "#{query} #{gemset}"
+      })
+    end
+
+    puts feedback.to_xml
+  end
+
 
   def info(gem_name)
     @cache.load
@@ -100,6 +118,7 @@ class RubyGemOrg
 
     @feedback = Feedback.new
     feedback_add_install_gem
+    feedback_add_choose_gemset
     feedback_add_project_uri
     feedback_add_gem_uri
     feedback_add_homepage_uri
@@ -117,8 +136,17 @@ class RubyGemOrg
       :subtitle => "Version: #{@gem_info["version"]} ; Version downloads: #{@gem_info['version_downloads']}",
       :arg => @gem_info['name']
     })
-end
+  end
 
+  def feedback_add_choose_gemset
+    @feedback.add_item({
+      :title => "Install this gem to specified gemset ...",
+      :subtitle => "Version: #{@gem_info["version"]} ; Version downloads: #{@gem_info['version_downloads']}",
+      :arg => @gem_info['name'],
+      :autocomplete => @gem_info['name'] + '  ' + @separator_gemset,
+      :valid    => 'no'
+    })
+  end
   def method_missing(method_id, &block)
     if method_id.to_s =~ /feedback_add_(.*)_uri/
       uri_name = $1
