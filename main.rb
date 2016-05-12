@@ -1,21 +1,32 @@
 Encoding::default_external = Encoding::UTF_8 if defined? Encoding
 
-require 'open-uri'
+$LOAD_PATH.unshift File.dirname(__FILE__)
+
+require "alfred_feedback"
 
 begin
   require 'json'
   require 'plist'
+
 rescue LoadError
-  system 'gem install json plist -N'
+  feedback = Feedback.new
+  feedback.add_item({
+  :uid      => 'Missing Required Gems',
+  :title    => 'Missing Required Gems',
+  :subtitle => "Not found gem: json or plist, press enter to install them.",
+  :arg      => "json plist"
+})
+  puts feedback.to_xml
 end
+
+require "alfred"
+require "cache"
+require 'open-uri'
+
 
 query = ARGV[0]
 
-$LOAD_PATH.unshift File.dirname(__FILE__)
 
-require "alfred"
-require "alfred_feedback"
-require "cache"
 
 Alfred = AlfredInit.new(query)
 
