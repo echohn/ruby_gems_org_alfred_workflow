@@ -26,6 +26,8 @@ __APPLESCRIPT__}
 end
 
 case query
+when "json plist"
+  install_gem "json plist"
 when /http[s]*:\/\/.*/
   open_uri query
 when /^[\w\-]+$/
